@@ -5,4 +5,5 @@ app_name = 'wishlist'
 
 urlpatterns = [
     path('', show_wishlist, name='show_wishlist'),
+    path('wishlist/', include('wishlist.urls')),
 ]
