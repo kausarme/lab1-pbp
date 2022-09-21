@@ -7,15 +7,20 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
-
+from django.contrib.auth.decorators import login_required
+import datetime
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 
 # Create your views here.
+@login_required(login_url='/wishlist/login/')
 def show_wishlist(request):
     data_barang_wishlist = BarangWishlist.objects.all()
     context = {
         'list_barang': data_barang_wishlist,
-        'nama': 'Kausar Meutuwah'
+        'nama': 'Kak Cinoy',
+        'last_login': request.COOKIES['last_login'],
     }
     return render(request, "wishlist.html", context)
 
@@ -58,14 +63,18 @@ def login_user(request):
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            return redirect('wishlist:show_wishlist')
-        else:
-            messages.info(request, 'Username atau Password salah!')
+            login(request, user)  # melakukan login terlebih dahulu
+            response = HttpResponseRedirect(reverse("wishlist:show_wishlist"))  # membuat response
+            response.set_cookie('last_login',
+                                str(datetime.datetime.now()))  # membuat cookie last_login dan menambahkannya ke dalam response
+            return response
+
     context = {}
     return render(request, 'login.html', context)
 
 
 def logout_user(request):
     logout(request)
-    return redirect('wishlist:login')
+    response = HttpResponseRedirect(reverse('wishlist:login'))
+    response.delete_cookie('last_login')
+    return response
