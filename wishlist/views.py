@@ -44,6 +44,7 @@ def show_xml_by_id(request, id):
     data = BarangWishlist.objects.filter(pk=id)
     return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
 
+
 def register(request):
     form = UserCreationForm()
 
@@ -56,6 +57,7 @@ def register(request):
 
     context = {'form': form}
     return render(request, 'register.html', context)
+
 
 def login_user(request):
     if request.method == 'POST':
