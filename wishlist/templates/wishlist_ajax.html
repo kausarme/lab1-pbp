@@ -1,24 +1,113 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% include 'navbar.html' %}
+
+{% block meta %}
+<title>Wishlist|Kausar</title>
+{% load static %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">window.CSRF_TOKEN = "{{ csrf_token }}"</script>
+{% endblock meta %}
+
+<script>
+    $(document).ready(function(){
+        $.getJSON("{% url 'wishlist:show_json' %}", function(json) {
+            // JSON result in `data` variable
+            var tables = [];
+            $.each(json, function(index, val){
+                var row = [];
+                var fields = val.fields
+                row.push("<td>" + String(val.fields.nama_barang) + "</td>");
+                row.push("<td>" + val.fields.harga_barang + "</td>");
+                row.push("<td>" + val.fields.deskripsi + "</td>");
+                tables.push("<tr>" + row.join("") + "</tr>");
+            });
+            document.getElementById("list_barang").innerHTML = tables.join("");
+        });
+    });
+
+
+
+
+</script>
+
+<!--Navbar-->
+<nav class="navbar navbar-expand-sm bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand">Kausar Meutuwah - Lab PBP</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSide"
+                aria-controls="navbarSide" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSide">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="ml-auto nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        {% if request.user.is_anonymous %}
+                        Anonymous
+                        {% else %}
+                        {{ request.user }}
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-sm-end">
+                        {% if request.user.is_anonymous %}
+                        <li><a class="dropdown-item" href="{% url 'wishlist:login' %}">Login</a></li>
+                        <li><a class="dropdown-item" href="{% url 'wishlist:register' %}">Register</a></li>
+                        {% else %}
+                        <li><a class="dropdown-item" href="{% url 'wishlist:logout' %}">Logout</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
 <br><br>
-<table class="table">
-    <tr>
-        <th>Nama Barang</th>
-        <th>Harga Barang</th>
-        <th>Deskripsi</th>
-    </tr>
-    {% comment %} Tambahkan data di bawah baris ini {% endcomment %}
-    {% for barang in list_barang %}
-    <tr>
-        <th>{{barang.nama_barang}}</th>
-        <th>{{barang.harga_barang}}</th>
-        <th>{{barang.deskripsi}}</th>
-    </tr>
-    {% endfor %}
-</table>
-<h5 class ="text-center">Sesi terakhir login: {{ last_login }}</h5>
+
+<div class="container">
+    <table class="table table-bordered">
+        <thead class="table-dark">
+        <tr>
+            <th scope="col">Nama Barang</th>
+            <th scope="col">Harga Barang</th>
+            <th scope="col">Deskripsi</th>
+        </tr>
+        </thead>
+        <tbody id="list_barang">
+        {% comment %} Tambahkan data di bawah baris ini {% endcomment %}
+        {% comment %} {% for barang in list_barang %}
+        <tr>
+            <td>{{barang.nama_barang}}</td>
+            <td>{{barang.harga_barang}}</td>
+            <td>{{barang.deskripsi}}</td>
+        </tr>
+        {% endfor %} {% endcomment %}
+        </tbody>
+    </table>
+
+
+    <p>Sesi terakhir login: {{ last_login }}
+
+    <div class="container" >
+    <form class="mb-5" method="POST" name="barang_form" id="tambah_barang_form">
+        {% csrf_token %}
+        <fieldset>
+            <h2>Tambah Barang Wishlist</h2>
+            <input class="form-control mb-3" type="text" placeholder="Nama barang" name="nama_barang">
+            <input class="form-control mb-3" type="number" min="1" step="any" placeholder="Harga barang" name="harga_barang">
+            <textarea class="form-control mb-3" rows="3" placeholder="Deskripsi" name="deskripsi"></textarea>
+            <button type="submit" class="btn btn-primary btnClick">Submit</button>
+        </fieldset>
+    </form>
+    </div>
+
+</div>
+<h5 class="text-center">Sesi terakhir login: {{ last_login }}</h5>
 
 
 {% endblock content %}
