@@ -25,6 +25,18 @@ def show_wishlist(request):
     }
     return render(request, "wishlist.html", context)
 
+@login_required(login_url='/wishlist/login/')
+def show_ajax(request):
+    data_barang_wishlist = BarangWishlist.objects.all()
+    context = {
+        'list_barang': data_barang_wishlist,
+        'nama': 'Kausar Meutuwah',
+        'last_login': request.COOKIES['last_login'],
+        'username': request.user
+    }
+    return render(request, "wishlist_ajax.html", context)
+
+
 
 def show_xml(request):
     data = BarangWishlist.objects.all()
