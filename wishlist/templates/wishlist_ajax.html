@@ -10,7 +10,50 @@
 {% endblock meta %}
 
 <script>
+    function getFormData($form){
+        var unindexed_array = $form.serializeArray();
+        var indexed_array = {};
+
+        $.map(unindexed_array, function(n, i){
+            indexed_array[n['name']] = n['value'];
+        });
+
+        return indexed_array;
+    }
+
     $(document).ready(function(){
+        $("#add_list").submit(function(e){
+            e.preventDefault();
+            $(".btnClick").prop('disabled', true);
+            $(".btnClick").text('Processing...');
+            var $form = $(this);
+            var serializedData =  getFormData($form);
+            console.log(serializedData)
+            $.ajax({
+                url: "{% url 'wishlist:post_ajax' %}",
+                type: "POST",
+                data: serializedData,
+                dataType: 'text',
+                success: function (data) {
+                    $(".btnClick").prop('disabled', false);
+                    $(".btnClick").text('Submit');
+                    $.getJSON("{% url 'wishlist:show_json' %}", function(json) {
+                        // JSON result in `data` variable
+                        var tables = [];
+                        $.each(json, function(index, val){
+                            var row = [];
+                            var fields = val.fields
+                            row.push("<td>" + String(val.fields.nama_barang) + "</td>");
+                            row.push("<td>" + val.fields.harga_barang + "</td>");
+                            row.push("<td>" + val.fields.deskripsi + "</td>");
+                            tables.push("<tr>" + row.join("") + "</tr>");
+                        });
+                        document.getElementById("list_barang").innerHTML = tables.join("");
+                    });
+                }
+            });
+        });
+
         $.getJSON("{% url 'wishlist:show_json' %}", function(json) {
             // JSON result in `data` variable
             var tables = [];
@@ -25,8 +68,6 @@
             document.getElementById("list_barang").innerHTML = tables.join("");
         });
     });
-
-
 
 
 </script>
@@ -66,7 +107,6 @@
     </div>
 </nav>
 
-
 <br><br>
 
 <div class="container">
@@ -79,35 +119,33 @@
         </tr>
         </thead>
         <tbody id="list_barang">
-        {% comment %} Tambahkan data di bawah baris ini {% endcomment %}
-        {% comment %} {% for barang in list_barang %}
-        <tr>
-            <td>{{barang.nama_barang}}</td>
-            <td>{{barang.harga_barang}}</td>
-            <td>{{barang.deskripsi}}</td>
-        </tr>
-        {% endfor %} {% endcomment %}
+            {% comment %} Tambahkan data di bawah baris ini {% endcomment %}
+            {% comment %} {% for barang in list_barang %}
+            <tr>
+                <td>{{barang.nama_barang}}</td>
+                <td>{{barang.harga_barang}}</td>
+                <td>{{barang.deskripsi}}</td>
+            </tr>
+            {% endfor %} {% endcomment %}
         </tbody>
     </table>
 
 
-    <p>Sesi terakhir login: {{ last_login }}
 
-    <div class="container" >
-    <form class="mb-5" method="POST" name="barang_form" id="tambah_barang_form">
+    <form class="mb-5" method="POST" name="barang_form" id="add_list">
         {% csrf_token %}
         <fieldset>
             <h2>Tambah Barang Wishlist</h2>
             <input class="form-control mb-3" type="text" placeholder="Nama barang" name="nama_barang">
-            <input class="form-control mb-3" type="number" min="1" step="any" placeholder="Harga barang" name="harga_barang">
+            <input class="form-control mb-3" type="number" min="1" step="any" placeholder="Harga barang"
+                   name="harga_barang">
             <textarea class="form-control mb-3" rows="3" placeholder="Deskripsi" name="deskripsi"></textarea>
             <button type="submit" class="btn btn-primary btnClick">Submit</button>
         </fieldset>
     </form>
-    </div>
-
 </div>
-<h5 class="text-center">Sesi terakhir login: {{ last_login }}</h5>
+
+
 
 
 {% endblock content %}
